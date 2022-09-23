@@ -32,6 +32,8 @@ import android.media.MediaFormat;
 import android.util.Log;
 import android.view.Surface;
 
+import com.serenegiant.gles.EglCore;
+import com.serenegiant.gles.WindowSurface;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.RenderHandler;
 
@@ -48,16 +50,17 @@ public class MediaVideoEncoder extends MediaEncoder implements IVideoEncoder {
 	private static final String MIME_TYPE = "video/avc";
 	// parameters for recording
 	private final int mWidth, mHeight;
-    private static final int FRAME_RATE = 15;
+    private static final int FRAME_RATE = 10;//15;
     private static final float BPP = 0.50f;
 
-    private RenderHandler mRenderHandler;
+    private MyRenderHandler mRenderHandler;
     private Surface mSurface;
 
 	public MediaVideoEncoder(final MediaMuxerWrapper muxer, final int width, final int height, final MediaEncoderListener listener) {
 		super(muxer, listener);
-		if (DEBUG) Log.i(TAG, "MediaVideoEncoder: ");
-		mRenderHandler = RenderHandler.createHandler(TAG);
+		if (DEBUG) Log.d(TAG, "MediaVideoEncoder: ");
+		//mRenderHandler = MyRenderHandler.createHandler(TAG);
+        mRenderHandler = MyRenderHandler.createHandler(TAG,width,height);
 		mWidth = width;
 		mHeight = height;
 	}
@@ -119,6 +122,7 @@ public class MediaVideoEncoder extends MediaEncoder implements IVideoEncoder {
 	}
 
 	public void setEglContext(final EGLBase.IContext sharedContext, final int tex_id) {
+		if (DEBUG) Log.d(TAG, "setEglContext  ");
 		mRenderHandler.setEglContext(sharedContext, tex_id, mSurface, true);
 	}
 

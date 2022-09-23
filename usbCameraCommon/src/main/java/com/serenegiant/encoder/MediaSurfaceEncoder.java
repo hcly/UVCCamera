@@ -46,7 +46,7 @@ public class MediaSurfaceEncoder extends MediaEncoder implements IVideoEncoder {
 
 	public MediaSurfaceEncoder(final MediaMuxerWrapper muxer, final int width, final int height, final MediaEncoderListener listener) {
 		super(muxer, listener);
-		if (DEBUG) Log.i(TAG, "MediaVideoEncoder: ");
+		if (DEBUG) Log.i(TAG, "MediaSurfaceEncoder: ");
 		mWidth = width;
 		mHeight = height;
 	}

@@ -54,7 +54,7 @@ public class MediaVideoBufferEncoder extends MediaEncoder implements IVideoEncod
 
 	public MediaVideoBufferEncoder(final MediaMuxerWrapper muxer, final int width, final int height, final MediaEncoderListener listener) {
 		super(muxer, listener);
-		if (DEBUG) Log.i(TAG, "MediaVideoEncoder: ");
+		if (DEBUG) Log.i(TAG, "MediaVideoBufferEncoder: ");
 		mWidth = width;
 		mHeight = height;
 	}

@@ -25,7 +25,10 @@ package com.serenegiant.widget;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
+import android.opengl.GLES20;
+import android.opengl.GLES30;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -37,9 +40,17 @@ import android.view.TextureView;
 import com.serenegiant.encoder.IVideoEncoder;
 import com.serenegiant.encoder.MediaEncoder;
 import com.serenegiant.encoder.MediaVideoEncoder;
+import com.serenegiant.gles.EglCore;
+import com.serenegiant.gles.FrameRect;
+import com.serenegiant.gles.FrameRectSProgram;
+import com.serenegiant.gles.TextureHelper;
+import com.serenegiant.gles.WaterSignSProgram;
+import com.serenegiant.gles.WaterSignature;
+import com.serenegiant.gles.WindowSurface;
 import com.serenegiant.glutils.EGLBase;
 import com.serenegiant.glutils.GLDrawer2D;
 import com.serenegiant.glutils.es1.GLHelper;
+import com.serenegiant.usbcameracommon.R;
 import com.serenegiant.utils.FpsCounter;
 
 /**
@@ -62,6 +73,9 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 	private Callback mCallback;
 	/** for calculation of frame rate */
 	private final FpsCounter mFpsCounter = new FpsCounter();
+	public static int mSignTexId;
+	private static boolean useNew = false;//是否使用新的画图
+	private static boolean isPreview = false;//开启预览
 
 	public UVCCameraTextureView(final Context context) {
 		this(context, null, 0);
@@ -69,11 +83,17 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 
 	public UVCCameraTextureView(final Context context, final AttributeSet attrs) {
 		this(context, attrs, 0);
+		if(!isPreview)
+			this.setAlpha(0);
+        mSignTexId = TextureHelper.loadTexture(context, R.mipmap.btn_repeat_shutter_default);
 	}
 
 	public UVCCameraTextureView(final Context context, final AttributeSet attrs, final int defStyle) {
 		super(context, attrs, defStyle);
 		setSurfaceTextureListener(this);
+		if(!isPreview)
+			this.setAlpha(0);
+        mSignTexId = TextureHelper.loadTexture(context, R.mipmap.btn_repeat_shutter_default);
 	}
 
 	@Override
@@ -191,6 +211,7 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 		if (DEBUG) Log.v(TAG, "getSurface:hasSurface=" + mHasSurface);
 		if (mPreviewSurface == null) {
 			final SurfaceTexture st = getSurfaceTexture();
+
 			if (st != null) {
 				mPreviewSurface = new Surface(st);
 			}
@@ -359,6 +380,8 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 			private int mViewWidth, mViewHeight;
 			private final FpsCounter mFpsCounter;
 
+			private FrameRect mFrameRect;
+			private WaterSignature mWaterSign;
 			/**
 			 * constructor
 			 * @param surface: drawing surface came from TexureView
@@ -369,6 +392,11 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 				mViewWidth = width;
 				mViewHeight = height;
 	    		setName("RenderThread");
+	    		if(useNew) {
+					mFrameRect = new FrameRect();
+					mWaterSign = new WaterSignature();
+				}
+
 			}
 
 			public final RenderHandler getHandler() {
@@ -447,11 +475,20 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 			 * draw a frame (and request to draw for video capturing if it is necessary)
 			 */
 			public final void onDrawFrame() {
+				//if(DEBUG)Log.d(TAG,"onDrawFrame");
 				mEglSurface.makeCurrent();
+				if(useNew) {
+					GLES30.glClear( GLES20.GL_DEPTH_BUFFER_BIT | GLES30.GL_COLOR_BUFFER_BIT);
+					GLES30.glEnable(GLES20.GL_BLEND); //打开混合功能
+					GLES30.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA); //指定混合模式
+					GLES30.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+				}
 				// update texture(came from camera)
 				mPreviewSurface.updateTexImage();
 				// get texture matrix
 				mPreviewSurface.getTransformMatrix(mStMatrix);
+				if(useNew)
+					GLES30.glViewport(0, 0, mViewWidth, mViewHeight); //设置视口为整个surface大小
 				// notify video encoder if it exist
 				if (mEncoder != null) {
 					// notify to capturing thread that the camera frame is available.
@@ -460,9 +497,24 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 					else
 						mEncoder.frameAvailableSoon();
 				}
-				// draw to preview screen
-				mDrawer.draw(mTexId, mStMatrix, 0);
+				if(isPreview) {
+					if (useNew) {
+						mFrameRect.drawFrame(mTexId, mStMatrix); // 画图
+						//mFrameRect.drawFrame(mTexId, mStMatrix,mSignTexId); // 画图
+						//GLES30.glViewport(0, 0, 240, 363); // x, y, width, height. 设置绘制的视口位置/大小
+						//Bitmap bitmap = BitmapFactory.decodeFile("/sdcard/123.jpg");
+						//int waterId = TextureHelper.loadBitmapTexture(bitmap);
+						//mWaterSign.drawFrame(waterId);
+						//bitmap.recycle();
+					} else {
+						// draw to preview screen
+						mDrawer.draw(mTexId, mStMatrix, 0);
+						//mDrawer.draw(waterId, mStMatrix, 0);
+						//mDrawer.draw(mSignTexId, mStMatrix, 0);
+					}
+				}
 				mEglSurface.swap();
+
 /*				// sample code to read pixels into Buffer and save as a Bitmap (part1)
 				buffer.position(offset);
 				GLES20.glReadPixels(0, 0, 640, 480, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buffer);
@@ -565,6 +617,10 @@ public class UVCCameraTextureView extends AspectRatioTextureView    // API >= 14
 	    		mEglSurface.makeCurrent();
 	    		// create drawing object
 	    		mDrawer = new GLDrawer2D(true);
+	    		if(useNew) {
+					mFrameRect.setShaderProgram(new FrameRectSProgram());
+					mWaterSign.setShaderProgram(new WaterSignSProgram());
+				}
 			}
 
 	    	private final void release() {

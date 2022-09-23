@@ -27,6 +27,7 @@ import android.animation.Animator;
 import android.graphics.SurfaceTexture;
 import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.Surface;
@@ -109,6 +110,8 @@ public final class MainActivity extends BaseActivity implements CameraDialog.Cam
 	private View mResetButton;
 	private View mToolsLayout, mValueLayout;
 	private SeekBar mSettingSeekbar;
+
+	private Handler handler = new Handler();
 
 	@Override
 	protected void onCreate(final Bundle savedInstanceState) {
@@ -193,6 +196,13 @@ public final class MainActivity extends BaseActivity implements CameraDialog.Cam
 						if (!mCameraHandler.isRecording()) {
 							mCaptureButton.setColorFilter(0xffff0000);	// turn red
 							mCameraHandler.startRecording();
+							/*
+							handler.postDelayed(new Runnable() {
+								@Override
+								public void run() {
+									mCaptureButton.performClick();
+								}
+							},30*60*1000);*/
 						} else {
 							mCaptureButton.setColorFilter(0);	// return to default color
 							mCameraHandler.stopRecording();
@@ -368,12 +378,13 @@ public final class MainActivity extends BaseActivity implements CameraDialog.Cam
 			if (isFinishing()) return;
 			final int visible_active = isActive() ? View.VISIBLE : View.INVISIBLE;
 			mToolsLayout.setVisibility(visible_active);
+			/*
 			mBrightnessButton.setVisibility(
 		    	checkSupportFlag(UVCCamera.PU_BRIGHTNESS)
 		    	? visible_active : View.INVISIBLE);
 			mContrastButton.setVisibility(
 		    	checkSupportFlag(UVCCamera.PU_CONTRAST)
-		    	? visible_active : View.INVISIBLE);
+		    	? visible_active : View.INVISIBLE);*/
 		}
 	};
 
