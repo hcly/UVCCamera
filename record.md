@@ -103,7 +103,7 @@ public void handleDraw(final int tex_id, final float[] tex_matrix) {
 ```
 刚开始使用的```int waterId = TextureHelper.loadBitmapTexture(bitmap);```这个会全内存占用量不断升高，录不了几分钟就得崩溃，后面新增加了waterSignHelper，发现显示能是正常的.
 参考了最下面那个链接，基本是没看懂，抱着试一试的态度最后改好了，完全没理解.哈哈.
-![](https://github.com/hcly/UVCCamera/video.png)
+![](https://github.com/hcly/UVCCamera/blob/master/video.png)
 
 ## 参考
 [OpenGL.ES在Android上的简单实践](https://blog.csdn.net/a360940265a/category_7388966.html)

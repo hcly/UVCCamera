@@ -1,6 +1,7 @@
 UVCCamera
 =========
-[修改记录](https://github.com/hcly/UVCCamera/record.md)
+[修改记录](https://github.com/hcly/UVCCamera/blob/master/record.md)
+
 library and sample to access to UVC web camera on non-rooted Android device
 
 Copyright (c) 2014-2017 saki t_saki@serenegiant.com
