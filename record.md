@@ -101,7 +101,40 @@ public void handleDraw(final int tex_id, final float[] tex_matrix) {
   }
 }
 ```
-刚开始使用的```int waterId = TextureHelper.loadBitmapTexture(bitmap);```这个会全内存占用量不断升高，录不了几分钟就得崩溃，后面新增加了waterSignHelper，发现显示能是正常的.
+刚开始使用的```int waterId = TextureHelper.loadBitmapTexture(bitmap);```这个会使内存占用量不断升高，录不了几分钟就得崩溃，后面新增加了waterSignHelper，发现显示能是正常的.
+
+录像视频旋转修改```usbCameraCommon/src/main/java/com/serenegiant/gles/FrameRect.java```中FULL_RECTANGLE_COORDS变量，已经定义好了四个旋转方向
+```
+    private static final float FULL_RECTANGLE_COORDS_0[] = {
+            -1.0f, -1.0f,   // 0 bottom left
+            1.0f, -1.0f,   // 1 bottom right
+            -1.0f,  1.0f,   // 2 top left
+            1.0f,  1.0f,   // 3 top right
+    };
+
+    private static final float FULL_RECTANGLE_COORDS_1[] = {
+            -1.0f, 1.0f,   // 0 bottom left
+            -1.0f, -1.0f,   // 1 bottom right
+            1.0f,  1.0f,   // 2 top left
+            1.0f,  -1.0f,   // 3 top right
+    };
+
+    private static final float FULL_RECTANGLE_COORDS_2[] = {
+            1.0f, 1.0f,   // 0 bottom left
+            -1.0f, 1.0f,   // 1 bottom right
+            1.0f,  -1.0f,   // 2 top left
+            -1.0f,  -1.0f,   // 3 top right
+    };
+
+    private static final float FULL_RECTANGLE_COORDS_3[] = {
+            1.0f, -1.0f,   // 0 bottom left
+            1.0f, 1.0f,   // 1 bottom right
+            -1.0f,  -1.0f,   // 2 top left
+            -1.0f,  1.0f,   // 3 top right
+    };
+
+private static final float[] FULL_RECTANGLE_COORDS = FULL_RECTANGLE_COORDS_0;
+```
 参考了最下面那个链接，基本是没看懂，抱着试一试的态度最后改好了，完全没理解.哈哈.
 ![](https://github.com/hcly/UVCCamera/blob/master/video.png)
 
